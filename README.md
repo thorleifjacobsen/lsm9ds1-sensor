@@ -31,4 +31,4 @@ Coming
  Adafruit have a very good example on how to wire this one up. Look at their [learning page](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/assembly).
 
  ## Credits
- This repo is somewhat build up on how Stein did his repo for the [BME280 Sensoe](https://github.com/skylarstein/bme280-sensor/). The source is also modified from SparkFun's version for the Arduino found [here](https://github.com/sparkfun/SparkFun_LSM9DS1_Arduino_Library/)
+ This repo is somewhat build up on how [Skylar Stein](https://github.com/skylarstein) did his repo for the [BME280 Sensoe](https://github.com/skylarstein/bme280-sensor/). The source is also modified from SparkFun's version for the Arduino found [here](https://github.com/sparkfun/SparkFun_LSM9DS1_Arduino_Library/)
