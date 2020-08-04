@@ -1,10 +1,10 @@
 # Still a work in progress!
 
 # lsm9ds1-sensor
-[<img src="https://img.shields.io/badge/Node.js-4.x%20through%207.x-brightgreen.svg">](https://nodejs.org) [<img src="https://img.shields.io/npm/v/bme280-sensor.svg">](https://www.npmjs.com/package/bme280-sensor) [![bitHound Overall Score](https://www.bithound.io/github/skylarstein/bme280-sensor/badges/score.svg)](https://www.bithound.io/github/skylarstein/bme280-sensor)
+[<img src="https://img.shields.io/badge/Node.js-4.x%20through%207.x-brightgreen.svg">](https://nodejs.org) [<img src="https://img.shields.io/npm/v/lsm9ds1-sensor.svg">](https://www.npmjs.com/package/lsm9ds1-sensor)
 
 
-[<img src="https://cdn-learn.adafruit.com/assets/assets/000/026/680/medium800/sensors_pinout.jpg" width="150" align="right">](https://www.adafruit.com/product/2652)
+[<img src="https://cdn-learn.adafruit.com/assets/assets/000/018/590/medium800/sensors_2021kit_ORIG.jpg?1407180576" width="150" align="right">](https://www.adafruit.com/product/3387)
 
 Welcome to lsm9ds1-sensor, a Node.js I2C module for the STMicroelectronics LSM9DS1 Gyro, Accelerometer and Magnometer + Temperature sensor. Adafruit sells a [LSM9DS1 breakout board](https://www.adafruit.com/product/3387) and [here is the datasheet](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/).
 
