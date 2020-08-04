@@ -1,0 +1,41 @@
+{
+  "author": {
+    "name": "Thorleif Jacobsen"
+  },
+  "bugs": {
+    "url": "https://github.com/thorleifjacobsen/lsm9ds1-sensor/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "i2c-bus": "^5.1.0"
+  },
+  "deprecated": false,
+  "description": "A Node.js I2C module for the LSM9DS1 Accelerometer, Gyroscoppe and Magnometer.",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
+  },
+  "homepage": "https://github.com/thorleifjacobsen/lsm9ds1-sensor#readme",
+  "keywords": [
+    "LSM9DS1",
+    "Accelerometer",
+    "Gyroscope",
+    "Magnometer",
+    "Sensor",
+    "Adafruit",
+    "Raspberry",
+    "Pi",
+    "Beaglebone"
+  ],
+  "license": "MIT",
+  "main": "LSM9DS1.js",
+  "name": "lsm9ds1-sensor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thorleifjacobsen/lsm9ds1-sensor.git"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "version": "0.1.7"
+}
