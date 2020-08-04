@@ -1,4 +1,6 @@
-# Still a work in progress!
+# STILL A WORK IN PROGRESS!
+
+If you have any contributions please create pull requests. This should be good enough to read and init data. But still needs a lot more tweaking.
 
 # lsm9ds1-sensor
 [<img src="https://img.shields.io/badge/Node.js-4.x%20through%207.x-brightgreen.svg">](https://nodejs.org) [<img src="https://img.shields.io/npm/v/lsm9ds1-sensor.svg">](https://www.npmjs.com/package/lsm9ds1-sensor)
@@ -17,16 +19,16 @@ Since lsm9ds1-sensor needs to talk directly to the I2C bus and requires access t
 ## Example Code
 
 ```
-Com\ing
+Coming
 ```
 
-##Example Output
+## Example Output
 
 ```
 > sudo node example.js          
 Coming
 ```
-##Example Wiring
+## Example Wiring
 
  Adafruit have a very good example on how to wire this one up. Look at their [learning page](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/assembly).
 
