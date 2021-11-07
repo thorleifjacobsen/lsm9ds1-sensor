@@ -12,7 +12,7 @@ module.exports = class LSM9DS1 {
   constructor(options) {
     const i2c = require('i2c-bus');
 
-    this.i2cBusNo = (options && options.hasOwnProperty('i2cBusNo')) ? options.i2cBusNo : 1;    
+    this.i2cBusNo = (options && options.hasOwnProperty('i2cBusNo')) ? options.i2cBusNo : 1;
     this.i2cBus = i2c.openSync(this.i2cBusNo);
     this.i2cAccelGyroAddress = (options && options.hasOwnProperty('i2cAccelGyroAddress')) ? options.i2cAccelGyroAddress : 0x6B;
     this.i2cMagAddress = (options && options.hasOwnProperty('i2cMagAddress')) ? options.i2cMagAddress : 0x1E;
@@ -32,7 +32,11 @@ module.exports = class LSM9DS1 {
       flipY: false,
       flipZ: false,
       orientation: 0,
-      latchInterrupt: true
+      latchInterrupt: true,
+      resolution: 0,
+      x: 0,
+      y: 0,
+      z: 0
     }
 
     this.accel = {
@@ -43,8 +47,12 @@ module.exports = class LSM9DS1 {
       scale: 2,
       sampleRate: 6,
       bandwidth: -1,
-      highResEnable : false,
-      highResBandwidth : 0
+      highResEnable: false,
+      highResBandwidth: 0,
+      resolution: 0,
+      x: 0,
+      y: 0,
+      z: 0
     }
 
     this.mag = {
@@ -55,19 +63,23 @@ module.exports = class LSM9DS1 {
       XYPerformance: 3,
       ZPerformance: 3,
       lowPowerEnable: false,
-      operatingMode : 0
+      operatingMode: 0,
+      resolution: 0,
+      x: 0,
+      y: 0,
+      z: 0
     }
 
     this.temp = {
       enabled: true
     }
 
-    this.gBias = [0,0,0];
-    this.aBias = [0,0,0];
-    this.mBias = [0,0,0];
-    this.gBiasRaw = [0,0,0];
-    this.aBiasRaw = [0,0,0];
-    this.nBiasRaw = [0,0,0];
+    this.gBias = [0, 0, 0];
+    this.aBias = [0, 0, 0];
+    this.mBias = [0, 0, 0];
+    this.gBiasRaw = [0, 0, 0];
+    this.aBiasRaw = [0, 0, 0];
+    this.nBiasRaw = [0, 0, 0];
 
     this._autoCalc = false;
   }
@@ -84,37 +96,37 @@ module.exports = class LSM9DS1 {
         // Verify Magnometer Chip ID
         this.i2cBus.writeByteSync(this.i2cMagAddress, LSM9DS1.WHO_AM_I_M(), 0);
         let mChipId = this.i2cBus.readByteSync(this.i2cMagAddress, LSM9DS1.WHO_AM_I_M());
-        if(mChipId !== LSM9DS1.WHO_AM_I_M_RSP()) {
+        if (mChipId !== LSM9DS1.WHO_AM_I_M_RSP()) {
           return reject(`Unexpected LSM9DS1 Magnometer chip ID: 0x${mChipId.toString(16)}`);
         }
 
         // Verify Accel & Gyro Chip ID
         this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.WHO_AM_I_XG(), 0);
         let xgChipId = this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.WHO_AM_I_XG());
-        if(xgChipId !== LSM9DS1.WHO_AM_I_AG_RSP()) {
+        if (xgChipId !== LSM9DS1.WHO_AM_I_AG_RSP()) {
           return reject(`Unexpected LSM9DS1 Accel/Gyro chip ID: 0x${xgChipId.toString(16)}`);
         }
-      } catch(err) {
-        return reject(err); 
+      } catch (err) {
+        return reject(err);
       };
 
       try {
         // Gyro initialization stuff:
         this.initGyro();	// This will "turn on" the gyro. Setting up interrupts, etc.
-        
+
         // Accelerometer initialization stuff:
         this.initAccel(); // "Turn on" all axes of the accel. Set up interrupts, etc.
-        
+
         // Magnetometer initialization stuff:
         this.initMag(); // "Turn on" all axes of the mag. Set up interrupts, etc.
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
 
       resolve();
     })
   }
-  
+
   initGyro() {
     let tempRegValue = 0;
 
@@ -149,9 +161,9 @@ module.exports = class LSM9DS1 {
     // LP_mode - Low-power mode enable (0: disabled, 1: enabled)
     // HP_EN - HPF enable (0:disabled, 1: enabled)
     // HPCF_G[3:0] - HPF cutoff frequency
-    tempRegValue = this.gyro.lowPowerEnable ? (1<<7) : 0;
+    tempRegValue = this.gyro.lowPowerEnable ? (1 << 7) : 0;
     if (this.gyro.HPFEnable) {
-      tempRegValue |= (1<<6) | (this.gyro.HPFCutoff & 0x0F);
+      tempRegValue |= (1 << 6) | (this.gyro.HPFCutoff & 0x0F);
     }
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG3_G(), tempRegValue);
 
@@ -163,10 +175,10 @@ module.exports = class LSM9DS1 {
     // LIR_XL1 - Latched interrupt (0:not latched, 1:latched)
     // 4D_XL1 - 4D option on interrupt (0:6D used, 1:4D used)
     tempRegValue = 0;
-    if (this.gyro.enableZ) tempRegValue |= (1<<5);
-    if (this.gyro.enableY) tempRegValue |= (1<<4);
-    if (this.gyro.enableX) tempRegValue |= (1<<3);
-    if (this.gyro.latchInterrupt) tempRegValue |= (1<<1);
+    if (this.gyro.enableZ) tempRegValue |= (1 << 5);
+    if (this.gyro.enableY) tempRegValue |= (1 << 4);
+    if (this.gyro.enableX) tempRegValue |= (1 << 3);
+    if (this.gyro.latchInterrupt) tempRegValue |= (1 << 1);
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG4(), tempRegValue);
 
     // ORIENT_CFG_G (Default value: 0x00)
@@ -174,15 +186,15 @@ module.exports = class LSM9DS1 {
     // SignX_G - Pitch axis (X) angular rate sign (0: positive, 1: negative)
     // Orient [2:0] - Directional user orientation selection
     tempRegValue = 0;
-    if (this.gyro.flipX) tempRegValue |= (1<<5);
-    if (this.gyro.flipY) tempRegValue |= (1<<4);
-    if (this.gyro.flipZ) tempRegValue |= (1<<3);
+    if (this.gyro.flipX) tempRegValue |= (1 << 5);
+    if (this.gyro.flipY) tempRegValue |= (1 << 4);
+    if (this.gyro.flipZ) tempRegValue |= (1 << 3);
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.ORIENT_CFG_G(), tempRegValue);
   }
 
   initAccel() {
     let tempRegValue = 0;
-	
+
     //	CTRL_REG5_XL (0x1F) (Default value: 0x38)
     //	[DEC_1][DEC_0][Zen_XL][Yen_XL][Zen_XL][0][0][0]
     //	DEC[0:1] - Decimation of accel data on OUT REG and FIFO.
@@ -190,12 +202,12 @@ module.exports = class LSM9DS1 {
     //	Zen_XL - Z-axis output enabled
     //	Yen_XL - Y-axis output enabled
     //	Xen_XL - X-axis output enabled
-    if (this.accel.enableZ) tempRegValue |= (1<<5);
-    if (this.accel.enableY) tempRegValue |= (1<<4);
-    if (this.accel.enableX) tempRegValue |= (1<<3);
-    
+    if (this.accel.enableZ) tempRegValue |= (1 << 5);
+    if (this.accel.enableY) tempRegValue |= (1 << 4);
+    if (this.accel.enableX) tempRegValue |= (1 << 3);
+
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG5_XL(), tempRegValue);
-    
+
     // CTRL_REG6_XL (0x20) (Default value: 0x00)
     // [ODR_XL2][ODR_XL1][ODR_XL0][FS1_XL][FS0_XL][BW_SCAL_ODR][BW_XL1][BW_XL0]
     // ODR_XL[2:0] - Output data rate & power mode selection
@@ -207,14 +219,14 @@ module.exports = class LSM9DS1 {
     if (this.accel.enabled) {
       tempRegValue |= (this.accel.sampleRate & 0x07) << 5;
     }
-    switch (this.accel.scale)     {
+    switch (this.accel.scale) {
       case 4: tempRegValue |= (0x2 << 3); break;
       case 8: tempRegValue |= (0x3 << 3); break;
       case 16: tempRegValue |= (0x1 << 3); break;
       // Otherwise it'll be set to 2g (0x0 << 3)
     }
     if (this.accel.bandwidth >= 0) {
-      tempRegValue |= (1<<2); // Set BW_SCAL_ODR
+      tempRegValue |= (1 << 2); // Set BW_SCAL_ODR
       tempRegValue |= (this.accel.bandwidth & 0x03);
     }
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG6_XL(), tempRegValue);
@@ -227,7 +239,7 @@ module.exports = class LSM9DS1 {
     // HPIS1 - HPF enabled for interrupt function
     tempRegValue = 0;
     if (this.accel.highResEnable) {
-      tempRegValue |= (1<<7); // Set HR bit
+      tempRegValue |= (1 << 7); // Set HR bit
       tempRegValue |= (this.accel.highResBandwidth & 0x3) << 5;
     }
     this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG7_XL(), tempRegValue);
@@ -235,7 +247,7 @@ module.exports = class LSM9DS1 {
 
   initMag() {
     let tempRegValue = 0;
-	
+
     // CTRL_REG1_M (Default value: 0x10)
     // [TEMP_COMP][OM1][OM0][DO2][DO1][DO0][0][ST]
     // TEMP_COMP - Temperature compensation
@@ -244,7 +256,7 @@ module.exports = class LSM9DS1 {
     //	10: high performance, 11:ultra-high performance
     // DO[2:0] - Output data rate selection
     // ST - Self-test enable
-    if (this.mag.tempCompensationEnable) tempRegValue |= (1<<7);
+    if (this.mag.tempCompensationEnable) tempRegValue |= (1 << 7);
     tempRegValue |= (this.mag.XYPerformance & 0x3) << 5;
     tempRegValue |= (this.mag.sampleRate & 0x7) << 2;
     this.i2cBus.writeByteSync(this.i2cMagAddress, LSM9DS1.CTRL_REG1_M(), tempRegValue);
@@ -272,7 +284,7 @@ module.exports = class LSM9DS1 {
     //	00:continuous conversion, 01:single-conversion,
     //  10,11: Power-down
     tempRegValue = 0;
-    if (this.mag.lowPowerEnable) tempRegValue |= (1<<5);
+    if (this.mag.lowPowerEnable) tempRegValue |= (1 << 5);
     tempRegValue |= (this.mag.operatingMode & 0x3);
     this.i2cBus.writeByteSync(this.i2cMagAddress, LSM9DS1.CTRL_REG3_M(), tempRegValue);
 
@@ -297,97 +309,97 @@ module.exports = class LSM9DS1 {
   accelAvailable() {
     try {
       const status = this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.STATUS_REG_1());
-      return (status & (1<<0));
-    } catch(err) { return false; }
+      return (status & (1 << 0));
+    } catch (err) { return false; }
   }
 
   gyroAvailable() {
     try {
       const status = this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.STATUS_REG_1());
-      return ((status & (1<<1)) >> 1);
-    } catch(err) { return false; }
+      return ((status & (1 << 1)) >> 1);
+    } catch (err) { return false; }
   }
 
   tempAvailable() {
     try {
       const status = this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.STATUS_REG_1());
-      return ((status & (1<<2)) >> 2);
-    } catch(err) { return false; }
+      return ((status & (1 << 2)) >> 2);
+    } catch (err) { return false; }
   }
 
   magAvailable(axis) {
     try {
       const status = this.i2cBus.readByteSync(this.i2cMagAddress, LSM9DS1.STATUS_REG_M());
-      return ((status & (1<<axis)) >> axis);
-    } catch(err) { return false; }
+      return ((status & (1 << axis)) >> axis);
+    } catch (err) { return false; }
   }
 
   readGyro() {
     try {
-      const temp = new Buffer(6); // We'll read six bytes from the gyro into temp
+      const temp = Buffer.alloc(6); // We'll read six bytes from the gyro into temp
       if (this.i2cBus.readI2cBlockSync(this.i2cAccelGyroAddress, LSM9DS1.OUT_X_L_G(), 6, temp)) {
         this.gyro.x = (temp[1] << 8) | temp[0]; // Store x-axis values into gx
         this.gyro.y = (temp[3] << 8) | temp[2]; // Store y-axis values into gy
         this.gyro.z = (temp[5] << 8) | temp[4]; // Store z-axis values into gz
 
-        if(this.gyro.x > 32768) { this.gyro.x -= 65536; }
-        if(this.gyro.y > 32768) { this.gyro.y -= 65536; }
-        if(this.gyro.z > 32768) { this.gyro.z -= 65536; }
+        if (this.gyro.x > 32768) { this.gyro.x -= 65536; }
+        if (this.gyro.y > 32768) { this.gyro.y -= 65536; }
+        if (this.gyro.z > 32768) { this.gyro.z -= 65536; }
 
         if (this._autoCalc) {
-          /*gx -= gBiasRaw[X_AXIS];
-          gy -= gBiasRaw[Y_AXIS];
-          gz -= gBiasRaw[Z_AXIS];*/
+          gx -= gBiasRaw[0];
+          gy -= gBiasRaw[1];
+          gz -= gBiasRaw[2];
         }
       }
-    } catch(err) { return false; }
+    } catch (err) { return false; }
   }
 
   readMag() {
     try {
-      const temp = new Buffer(6); // We'll read six bytes from the mag into temp	
+      const temp = Buffer.alloc(6); // We'll read six bytes from the mag into temp	
       if (this.i2cBus.readI2cBlockSync(this.i2cMagAddress, LSM9DS1.OUT_X_L_M(), 6, temp)) {
         this.mag.x = (temp[1] << 8) | temp[0]; // Store x-axis values into mx
         this.mag.y = (temp[3] << 8) | temp[2]; // Store y-axis values into my
         this.mag.z = (temp[5] << 8) | temp[4]; // Store z-axis values into mz
 
-        if(this.mag.x > 32768) { this.mag.x -= 65536; }
-        if(this.mag.y > 32768) { this.mag.y -= 65536; }
-        if(this.mag.z > 32768) { this.mag.z -= 65536; }
+        if (this.mag.x > 32768) { this.mag.x -= 65536; }
+        if (this.mag.y > 32768) { this.mag.y -= 65536; }
+        if (this.mag.z > 32768) { this.mag.z -= 65536; }
 
       }
-    } catch(err) { return false; }
+    } catch (err) { return false; }
   }
 
   readAccel() {
     try {
-      const temp = new Buffer(6); // We'll read six bytes from the accelerometer into temp	
+      const temp = Buffer.alloc(6); // We'll read six bytes from the accelerometer into temp	
       if (this.i2cBus.readI2cBlockSync(this.i2cAccelGyroAddress, LSM9DS1.OUT_X_L_XL(), 6, temp)) {
         this.accel.x = (temp[1] << 8) | temp[0]; // Store x-axis values into ax
         this.accel.y = (temp[3] << 8) | temp[2]; // Store y-axis values into ay
         this.accel.z = (temp[5] << 8) | temp[4]; // Store z-axis values into az
 
-        if(this.accel.x > 32768) { this.accel.x -= 65536; }
-        if(this.accel.y > 32768) { this.accel.y -= 65536; }
-        if(this.accel.z > 32768) { this.accel.z -= 65536; }
+        if (this.accel.x > 32768) { this.accel.x -= 65536; }
+        if (this.accel.y > 32768) { this.accel.y -= 65536; }
+        if (this.accel.z > 32768) { this.accel.z -= 65536; }
 
         if (this._autoCalc) {
-        /* ax -= aBiasRaw[X_AXIS];
-          ay -= aBiasRaw[Y_AXIS];
-          az -= aBiasRaw[Z_AXIS];*/
+          /* ax -= aBiasRaw[X_AXIS];
+            ay -= aBiasRaw[Y_AXIS];
+            az -= aBiasRaw[Z_AXIS];*/
         }
       }
-    } catch(err) { return false; }
+    } catch (err) { return false; }
   }
 
   readTemp() {
     try {
-      const temp = new Buffer(2); // We'll read two bytes from the temperature sensor into temp	
+      const temp = Buffer.alloc(2); // We'll read two bytes from the temperature sensor into temp	
       if (this.i2cBus.readI2cBlockSync(this.i2cMagAddress, LSM9DS1.OUT_TEMP_L(), 2, temp)) {
         let offset = 25;  // Per datasheet sensor outputs 0 typically @ 25 degrees centigrade
         this.temp.value = offset + (((temp[1] << 8) | temp[0]) >> 8);
       }
-    } catch(err) { return false; }
+    } catch (err) { return false; }
   }
 
   calcGyro(value) {
@@ -405,15 +417,15 @@ module.exports = class LSM9DS1 {
   enableFIFO(enable) {
     try {
       let temp = this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG9());
-      if (enable) temp |= (1<<1);
-      else temp &= ~(1<<1);
+      if (enable) temp |= (1 << 1);
+      else temp &= ~(1 << 1);
       this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.CTRL_REG9(), temp);
       return true;
-    } catch(err) {
-      return false; 
+    } catch (err) {
+      return false;
     }
   }
-  
+
   setFIFO(fifoMode, fifoThs) {
     try {
       // Limit threshold - 0x1F (31) is the maximum. If more than that was asked
@@ -421,29 +433,72 @@ module.exports = class LSM9DS1 {
       let threshold = fifoThs <= 0x1F ? fifoThs : 0x1F;
       let temp = ((fifoMode & 0x7) << 5) | (threshold & 0x1F);
       this.i2cBus.writeByteSync(this.i2cAccelGyroAddress, LSM9DS1.FIFO_CTRL(), temp);
-    } catch(err) {
-      return false; 
+    } catch (err) {
+      return false;
     }
+  }
+
+  // This is a function that uses the FIFO to accumulate sample of accelerometer and gyro data, average
+  // them, scales them to  gs and deg/s, respectively, and then passes the biases to the main sketch
+  // for subtraction from all subsequent data. There are no gyro and accelerometer bias registers to store
+  // the data as there are in the ADXL345, a precursor to the LSM9DS0, or the MPU-9150, so we have to
+  // subtract the biases ourselves. This results in a more accurate measurement in general and can
+  // remove errors due to imprecise or varying initial placement. Calibration of sensor data in this manner
+  // is good practice.
+  calibrate(autoCalc) {
+    let samples = 0;
+    let aBiasRawTemp = [0, 0, 0];
+    let gBiasRawTemp = [0, 0, 0];
+
+    // Turn on FIFO and set threshold to 32 samples
+    this.enableFIFO(true);
+    this.setFIFO(1, 0x1F);
+    while (samples < 0x1F) {
+      samples = (this.i2cBus.readByteSync(this.i2cAccelGyroAddress, LSM9DS1.FIFO_SRC()) & 0x3F); // Read number of stored samples
+    }
+
+    for (let i = 0; i < samples; i++) {    // Read the gyro data stored in the FIFO
+      this.readGyro();
+      gBiasRawTemp[0] += this.gyro.x;
+      gBiasRawTemp[1] += this.gyro.y;
+      gBiasRawTemp[2] += this.gyro.z;
+      this.readAccel();
+      aBiasRawTemp[0] += this.accel.x;
+      aBiasRawTemp[1] += this.accel.y;
+      aBiasRawTemp[2] += this.accel.z - (1 / this.accel.resolution); // Assumes sensor facing up!
+    }
+
+    for (let i = 0; i < 3; i++) {
+      this.gBiasRaw[i] = gBiasRawTemp[i] / samples;
+      this.gBias[i] = this.calcGyro(this.gBiasRaw[i]);
+      this.aBiasRaw[i] = aBiasRawTemp[i] / samples;
+      this.aBias[i] = this.calcAccel(this.aBiasRaw[i]);
+    }
+
+    this.enableFIFO(false);
+    this.setFIFO(0, 0x00);
+
+    if (autoCalc) _autoCalc = true;
   }
 
   constrainScalesAndCalculateResolutions() {
     // Sensor Sensitivity Cosntants
     // Values set according to the typical specifications provided in
     // table 3 of the LSM9DS1 datasheet. (pg 12)
-    const gyroSens  = { "245": 0.00875, "500": 0.0175, "2000": 0.07 };
+    const gyroSens = { "245": 0.00875, "500": 0.0175, "2000": 0.07 };
     const accelSens = { "2": 0.000061, "4": 0.000122, "8": 0.000244, "16": 0.000732 };
-    const magSens   = { "4": 0.00014, "8": 0.00029, "12": 0.00043, "16": 0.00058 };
+    const magSens = { "4": 0.00014, "8": 0.00029, "12": 0.00043, "16": 0.00058 };
 
     // Constrain scales
-    if(!Object.keys(gyroSens).includes(this.gyro.scale.toString()))   { this.gyro.scale = 245; }
-    if(!Object.keys(accelSens).includes(this.accel.scale.toString())) { this.accel.scale = 2;  }
-    if(!Object.keys(magSens).includes(this.mag.scale.toString()))     { this.mag.scale = 4;    }
+    if (!Object.keys(gyroSens).includes(this.gyro.scale.toString())) { this.gyro.scale = 245; }
+    if (!Object.keys(accelSens).includes(this.accel.scale.toString())) { this.accel.scale = 2; }
+    if (!Object.keys(magSens).includes(this.mag.scale.toString())) { this.mag.scale = 4; }
 
     // Set resolutions
-    
-    this.gyro.resolution  = gyroSens[this.gyro.scale];   // Calculate DPS / ADC tick
+
+    this.gyro.resolution = gyroSens[this.gyro.scale];   // Calculate DPS / ADC tick
     this.accel.resolution = accelSens[this.accel.scale]; // Calculate g / ADC tick
-    this.mag.resolution   = magSens[this.mag.scale];     // Calculate Gs / ADC tick
+    this.mag.resolution = magSens[this.mag.scale];     // Calculate Gs / ADC tick
   }
 
   /////////////////////////////////////////
@@ -534,10 +589,3 @@ module.exports = class LSM9DS1 {
   static WHO_AM_I_M_RSP() { return 0x3D; }
 
 }
-
-
-
-
-
-
-
